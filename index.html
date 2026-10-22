@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIUPACK - Empaques Vivos de Micelio & Residuos Orgánicos</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-green': '#15392A',
+                        'deep-green': '#0F2A1E',
+                        'light-cream': '#FAF6F0',
+                        'card-cream': '#F4EFE6',
+                        'primary-orange': '#C77A38',
+                        'primary-orange-hover': '#b26a2d',
+                        'accent-green': '#2E6F40',
+                        'accent-mint': '#A7D7C5',
+                        'accent-pill': '#81C784',
+                    },
+                    fontFamily: {
+                        heading: ['Playfair Display', 'Georgia', 'serif'],
+                        body: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #FAF6F0;
+            color: #1F2923;
+        }
+
+        .font-heading {
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF6F0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #15392A;
+            border-radius: 4px;
+        }
+
+        /* Toast animation */
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Composition Hotspots hover effect */
+        .comp-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .comp-card.active, .comp-card:hover {
+            transform: translateY(-4px);
+            border-color: #C77A38;
+            box-shadow: 0 10px 25px -5px rgba(199, 122, 56, 0.15);
+        }
+
+        /* Comparison Slider image overlays */
+        .img-comp-container {
+            position: relative;
+            height: 400px;
+        }
+        .img-comp-img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .img-comp-img img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .img-comp-overlay {
+            width: 50%;
+            z-index: 2;
+        }
+
+        /* Custom image aspect ratios and fallback shadows */
+        .img-cover-blend {
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* WhatsApp Button Pulse Effect */
+        @keyframes pulse-border {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 14px rgba(37, 211, 102, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+            }
+        }
+        .wa-btn-pulse {
+            animation: pulse-border 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-light-cream text-gray-800 antialiased overflow-x-hidden">
+
+    <!-- ANNOUNCEMENT BAR -->
+    <div class="bg-[#0B2117] text-[#C2D5C9] text-xs py-2 px-4 flex justify-between items-center border-b border-white/10">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <div><i class="fa-solid fa-leaf text-accent-mint mr-2"></i>Empaques Biodegradables y Personalizados — <strong>Envíos a todo el país</strong></div>
+            <div class="hidden sm:block"><a href="#b2b-section" class="hover:underline text-white font-medium">Cotizaciones B2B e Industriales &rarr;</a></div>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="bg-dark-green text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+                
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="h-12 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <img src="logotipo.png" alt="XiuPack Logo" class="h-full w-auto object-contain">
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase tracking-widest text-accent-mint font-semibold">Empaques Vivos</span>
+                    </div>
+                </a>
+
+                <!-- Location Selector -->
+                <button class="hidden md:flex items-center gap-2 bg-white/10 hover:bg-white/15 px-3 py-2 rounded-lg text-xs text-left border border-white/10 transition-colors">
+                    <i class="fa-solid fa-location-dot text-primary-orange text-sm"></i>
+                    <div>
+                        <span class="block text-[10px] text-accent-mint">Entregar en</span>
+                        <strong class="text-white font-semibold">México / LATAM</strong>
+                    </div>
+                </button>
+
+                <!-- Search Bar con el filtro desplegable único -->
+                <div class="w-full lg:w-1/3 flex bg-white rounded-lg overflow-hidden shadow-inner">
+                    <select id="searchCategory" class="bg-gray-100 text-gray-700 text-xs px-3 py-2.5 font-medium border-r border-gray-200 outline-none cursor-pointer">
+                        <option value="all">Todos los costales</option>
+                        <option value="costal25">Costal 25 kg</option>
+                        <option value="costal45">Costal 45 kg</option>
+                        <option value="costal50">Costal 50 kg</option>
+                    </select>
+                    <input type="text" id="searchInput" placeholder="Buscar costales de 25, 45 o 50 kg..." class="w-full px-3 py-2 text-xs text-gray-800 outline-none">
+                    <button id="searchBtn" class="bg-primary-orange hover:bg-primary-orange-hover text-white px-4 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="flex items-center gap-6 text-xs">
+                    <div class="hidden sm:flex items-center gap-2 cursor-pointer hover:text-accent-mint transition-colors">
+                        <i class="fa-regular fa-user text-lg"></i>
+                        <div>
+                            <span class="block text-[10px] text-gray-300">Hola, Inicia sesión</span>
+                            <span class="font-semibold block">Cuenta y Pedidos</span>
+                        </div>
+                    </div>
+
+                    <!-- Cart Toggle -->
+                    <button id="cartBtn" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors relative">
+                        <div class="relative">
+                            <i class="fa-solid fa-cart-shopping text-base"></i>
+                            <span id="cartCount" class="absolute -top-2 -right-3 bg-primary-orange text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-dark-green">0</span>
+                        </div>
+                        <span class="font-bold hidden sm:inline ml-1">Carrito</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="bg-dark-green text-white py-12 lg:py-20 relative overflow-hidden">
+        <div class="container mx-auto px-4">
+            <div class="grid lg:grid-cols-12 gap-8 items-center">
+                
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="inline-flex items-center gap-2 bg-primary-orange/20 border border-primary-orange text-accent-mint px-3 py-1.5 rounded-full text-xs font-semibold">
+                        <i class="fa-solid fa-leaf text-primary-orange"></i> Sustituto Ecológico de Unicel y Plástico
+                    </div>
+                    <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
+                        Empaques que Protegen,<br>
+                        <span class="text-accent-mint italic">Naturaleza que Trasciende</span>
+                    </h1>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed max-w-xl">
+                        Aglutinado naturalmente con micelio de hongo y enriquecido con aserrín, paja y cascarilla de arroz. Diseñamos estuches y protectores a la medida que brindan amortiguación térmica e hidrófuga superior y se compostan de forma 100% natural.
+                    </p>
+                    
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <a href="#catalogo" class="bg-primary-orange hover:bg-primary-orange-hover text-white font-bold px-6 py-3.5 rounded-lg text-sm transition-all transform hover:-translate-y-0.5 shadow-lg flex items-center gap-2">
+                            Explorar Catálogo <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                        <button id="btnRequestSamples" class="border border-white/30 hover:bg-white/10 text-white font-semibold px-6 py-3.5 rounded-lg text-sm transition-colors">
+                            Solicitar Kit de Muestras
+                        </button>
+                    </div>
+
+                    <!-- Highlights -->
+                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 text-xs text-accent-mint">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-primary-orange text-base"></i>
+                            <span>Resistencia Térmica y Térmica</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-recycle text-primary-orange text-base"></i>
+                            <span>100% Compostable en 30 días</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-earth-americas text-primary-orange text-base"></i>
+                            <span>Cero Tóxicos / Zero Waste</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Showcase Image Grid Base -->
+                <div class="lg:col-span-6">
+                    <div class="relative bg-card-cream p-4 rounded-2xl shadow-2xl border border-white/10 text-gray-800">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-3">
+                                <div class="relative group rounded-xl overflow-hidden shadow">
+                                    <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80" alt="Eco Box Mushroom Packaging" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <span class="absolute bottom-2 left-2 bg-dark-green/90 text-accent-mint text-[10px] font-bold px-2 py-1 rounded">Velas & Vidrio</span>
+                                </div>
+                                <div class="bg-dark-green text-white p-4 rounded-xl">
+                                    <div class="text-xs text-accent-mint font-semibold uppercase tracking-wider">Aislamiento Térmico</div>
+                                    <div class="font-heading text-lg font-bold">Micelio + Aserrín</div>
+                                    <p class="text-[11px] text-gray-300 mt-1">Estructura celular interna absorbente de impactos mecánicos.</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="bg-primary-orange text-white p-4 rounded-xl">
+                                    <div class="text-[10px] uppercase tracking-wider font-bold">100% Biodegradable</div>
+                                    <div class="text-2xl font-bold font-heading">0% Unicel</div>
+                                    <span class="text-[11px] block mt-1">No deja microplásticos al desecharse.</span>
+                                </div>
+                                <div class="relative group rounded-xl overflow-hidden shadow">
+                                    <img src="xiu.jpg" alt="Empaque ecológico de micelio con vela aromática" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <span class="absolute bottom-2 left-2 bg-dark-green/90 text-accent-mint text-[10px] font-bold px-2 py-1 rounded">Cosmética Premium</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Badge Overlay -->
+                        <div class="mt-3 bg-white p-3 rounded-xl flex items-center justify-between border border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-green-100 text-accent-green flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <div class="text-xs">
+                                    <span class="font-bold block text-dark-green">Certificación Bio-Material</span>
+                                    <span class="text-gray-500">Hecho con residuos agrícolas locales</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-primary-orange bg-primary-orange/10 px-2.5 py-1 rounded-full">Xiupack Custom</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPOSITION & MATERIAL INFOGRAPHIC -->
+    <section class="py-16 bg-white border-b border-gray-200" id="composicion">
+        <div class="container mx-auto px-4">
+            
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="bg-primary-orange/10 text-primary-orange font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full">Anatomía Biomimética</span>
+                <h2 class="font-heading text-3xl sm:text-4xl font-extrabold text-dark-green mt-2">¿De qué está hecho XIUPACK?</h2>
+                <p class="text-gray-600 text-sm mt-3">
+                    Combinamos la biotecnología del micelio de hongo con 4 subproductos agrícolas locales para lograr empaques ultra resistentes y compostables. Haz clic en cada ingrediente para conocer su función técnica.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-8 items-center">
+                
+                <div class="lg:col-span-5 space-y-4" id="materialTabs">
+                    
+                    <div class="comp-card active bg-card-cream p-4 rounded-xl border-2 border-primary-orange cursor-pointer" data-mat="micelio">
+                        <div class="flex items-center gap-4">
+                            <img src="xiupack3.jpeg" alt="Micelio de Hongo" class="w-16 h-16 rounded-lg object-cover border border-white shadow-sm">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-dark-green text-base">Micelio de Hongo</h3>
+                                    <span class="text-[10px] font-bold bg-dark-green text-accent-mint px-2 py-0.5 rounded-full">Aglutinante</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Aglutinante natural que otorga estructura, cohesión y alta resistencia.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comp-card bg-card-cream p-4 rounded-xl border-2 border-transparent hover:border-gray-300 cursor-pointer" data-mat="aserrin">
+                        <div class="flex items-center gap-4">
+                            <img src="aserrin.jpg" alt="Aserrín Natural" class="w-16 h-16 rounded-lg object-cover border border-white shadow-sm">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-dark-green text-base">Aserrín Orgánico</h3>
+                                    <span class="text-[10px] font-bold bg-amber-800 text-amber-100 px-2 py-0.5 rounded-full">Sustrato Base</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Base principal que aporta densidad estructural y firmeza al molde.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comp-card bg-card-cream p-4 rounded-xl border-2 border-transparent hover:border-gray-300 cursor-pointer" data-mat="paja">
+                        <div class="flex items-center gap-4">
+                            <img src="paja.jpg" alt="Paja y Fibra Natural" class="w-16 h-16 rounded-lg object-cover border border-white shadow-sm">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-dark-green text-base">Paja / Fibra Natural</h3>
+                                    <span class="text-[10px] font-bold bg-yellow-700 text-yellow-100 px-2 py-0.5 rounded-full">Flexibilidad</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Aporta ligereza, elasticidad amortiguadora y amortiguación de caídas.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comp-card bg-card-cream p-4 rounded-xl border-2 border-transparent hover:border-gray-300 cursor-pointer" data-mat="cascarilla">
+                        <div class="flex items-center gap-4">
+                            <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=200&q=80" alt="Cascarilla de Arroz" class="w-16 h-16 rounded-lg object-cover border border-white shadow-sm">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-dark-green text-base">Cascarilla de Arroz</h3>
+                                    <span class="text-[10px] font-bold bg-amber-900 text-amber-200 px-2 py-0.5 rounded-full">Aislamiento</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Mejora la textura táctil, la dureza superficial y el aislamiento térmico.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="lg:col-span-7">
+                    <div class="bg-dark-green text-white rounded-2xl p-6 sm:p-8 relative shadow-xl overflow-hidden border border-white/10" id="materialDetailCard">
+                        
+                        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-4 mb-6">
+                            <div>
+                                <span class="text-xs uppercase font-bold text-accent-mint tracking-wider block" id="matType">Componente Activo</span>
+                                <h3 class="font-heading text-2xl sm:text-3xl font-bold text-white mt-1" id="matTitle">Micelio de Hongo</h3>
+                            </div>
+                            <span class="bg-primary-orange text-white text-xs font-bold px-3 py-1.5 rounded-full" id="matBadge">Aglutinante Botánico</span>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-6 items-center">
+                            <div class="space-y-4">
+                                <p class="text-xs sm:text-sm text-gray-200 leading-relaxed" id="matDesc">
+                                    El micelio actúa como una red tridimensional microscópica que "teje" todos los residuos orgánicos secos. Al crecer durante el periodo de incubación en el molde, une las partículas mediante polímeros de quitina sin necesidad de adhesivos químicos ni resinas sintéticas.
+                                </p>
+                                
+                                <ul class="space-y-2 text-xs text-accent-mint" id="matList">
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-primary-orange"></i> Aglutinado por entramado celular vivo</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-primary-orange"></i> Autoelemento ignífugo e hidrófugo leve</li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-primary-orange"></i> Descomposición completa acelerada en compost</li>
+                                </ul>
+                            </div>
+
+                            <div class="relative rounded-xl overflow-hidden shadow-lg border border-white/20 h-64">
+                                <img id="matImage" src="xiu.jpg" alt="Micelio Detalle" class="w-full h-full object-cover">
+                                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-[11px] text-white">
+                                    <strong class="block text-accent-mint">Microestructura XIUPACK</strong>
+                                    <span>Material 100% compostable sin residuos tóxicos.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CATALOG / PRODUCTS GRID -->
+    <section class="py-16 bg-light-cream" id="catalogo">
+        <div class="container mx-auto px-4">
+
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                <div>
+                    <span class="bg-primary-orange text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded">Venta por costal</span>
+                    <h2 class="font-heading text-3xl font-extrabold text-dark-green mt-2">Catálogo de Costales XIUPACK</h2>
+                    <p class="text-gray-600 text-xs sm:text-sm mt-1">Relleno micelial a granel en tres presentaciones: 25, 45 y 50 kg.</p>
+                </div>
+
+                <div class="text-xs text-gray-500 font-medium">
+                    Mostrando <span id="visibleCount" class="font-bold text-dark-green">3</span> presentaciones
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="productGrid">
+
+                <div class="product-card bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all flex flex-col" data-category="costal25 mayoreo">
+                    <div class="relative h-56 bg-gray-100 overflow-hidden group">
+                        <img src="costal-chico.jpeg" alt="Costal de Relleno Micelial 25 kg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-dark-green text-white text-[10px] font-bold px-2.5 py-1 rounded">Ideal para empezar</span>
+                        <span class="absolute bottom-3 right-3 bg-white/90 text-dark-green text-sm font-extrabold px-3 py-1 rounded-full shadow">25 kg</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div>
+                            <span class="text-[10px] font-bold text-accent-green uppercase tracking-wider block">Costal a granel</span>
+                            <h3 class="font-bold text-dark-green text-base mt-1">Costal de Relleno Micelial 25 kg</h3>
+                            <p class="text-xs text-gray-500 mt-1">Presentación manejable para talleres, emprendimientos y envíos de volumen medio.</p>
+
+                            <ul class="mt-3 space-y-1 text-[11px] text-gray-600">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-accent-green"></i> Reemplazo del cacahuate de unicel</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-accent-green"></i> Reutilizable y compostable directo</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-leaf text-accent-green"></i> Evitas ~1.25 kg de desecho no reciclable</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <div class="flex items-baseline gap-2 mb-1">
+                                <span class="text-xl font-bold text-dark-green">$349.00 MXN</span>
+                            </div>
+                            <span class="text-[11px] text-gray-500 block mb-3">$13.96 MXN por kg</span>
+                            <button onclick="addToCart('Costal de Relleno Micelial 25 kg', 349.00, 25)" class="w-full bg-primary-orange hover:bg-primary-orange-hover text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i> Añadir al Carrito
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all flex flex-col" data-category="costal45 mayoreo">
+                    <div class="relative h-56 bg-gray-100 overflow-hidden group">
+                        <img src="costal-mediano.jpeg" alt="Costal de Relleno Micelial 45 kg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-primary-orange text-white text-[10px] font-bold px-2.5 py-1 rounded">Más Vendido</span>
+                        <span class="absolute bottom-3 right-3 bg-white/90 text-dark-green text-sm font-extrabold px-3 py-1 rounded-full shadow">45 kg</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div>
+                            <span class="text-[10px] font-bold text-accent-green uppercase tracking-wider block">Costal a granel</span>
+                            <h3 class="font-bold text-dark-green text-base mt-1">Costal de Relleno Micelial 45 kg</h3>
+                            <p class="text-xs text-gray-500 mt-1">El equilibrio entre rendimiento y precio por kilo para tiendas en línea con envíos frecuentes.</p>
+
+                            <ul class="mt-3 space-y-1 text-[11px] text-gray-600">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-accent-green"></i> Reemplazo del cacahuate de unicel</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-accent-green"></i> Reutilizable y compostable directo</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-leaf text-accent-green"></i> Evitas ~2.25 kg de desecho no reciclable</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <div class="flex items-baseline gap-2 mb-1">
+                                <span class="text-xl font-bold text-dark-green">$599.00 MXN</span>
+                            </div>
+                            <span class="text-[11px] text-gray-500 block mb-3">$13.31 MXN por kg</span>
+                            <button onclick="addToCart('Costal de Relleno Micelial 45 kg', 599.00, 45)" class="w-full bg-primary-orange hover:bg-primary-orange-hover text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i> Añadir al Carrito
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all flex flex-col" data-category="costal50 mayoreo">
+                    <div class="relative h-56 bg-gray-100 overflow-hidden group">
+                        <img src="costal-grande.jpeg" alt="Costal de Relleno Micelial 50 kg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-purple-900 text-white text-[10px] font-bold px-2.5 py-1 rounded">Mayoreo</span>
+                        <span class="absolute bottom-3 right-3 bg-white/90 text-dark-green text-sm font-extrabold px-3 py-1 rounded-full shadow">50 kg</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div>
+                            <span class="text-[10px] font-bold text-accent-green uppercase tracking-wider block">Costal a granel</span>
+                            <h3 class="font-bold text-dark-green text-base mt-1">Costal de Relleno Micelial 50 kg</h3>
+                            <p class="text-xs text-gray-500 mt-1">Costal industrial para líneas de empaque y operaciones de alto volumen.</p>
+
+                            <ul class="mt-3 space-y-1 text-[11px] text-gray-600">
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-accent-green"></i> Reemplazo del cacahuate de unicel</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-check text-accent-green"></i> Reutilizable y compostable directo</li>
+                                <li class="flex items-center gap-1.5"><i class="fa-solid fa-leaf text-accent-green"></i> Evitas ~2.50 kg de desecho no reciclable</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <div class="flex items-baseline gap-2 mb-1">
+                                <span class="text-xl font-bold text-dark-green">$649.00 MXN</span>
+                            </div>
+                            <span class="text-[11px] text-gray-500 block mb-3">$12.98 MXN por kg</span>
+                            <button onclick="addToCart('Costal de Relleno Micelial 50 kg', 649.00, 50)" class="w-full bg-primary-orange hover:bg-primary-orange-hover text-white font-bold py-2.5 rounded-lg text-xs transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i> Añadir al Carrito
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CALCULADORA DE DESECHO AHORRADO -->
+    <section class="py-16 bg-white border-y border-gray-200" id="calculadora">
+        <div class="container mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <span class="bg-green-100 text-accent-green font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full">Tu impacto</span>
+                <h2 class="font-heading text-3xl font-extrabold text-dark-green mt-2">¿Cuánto desecho acabas de ahorrar?</h2>
+                <p class="text-gray-600 text-sm mt-2">Elige el tamaño de costal y la cantidad. Calculamos al instante el desecho no reciclable y las emisiones que evitas frente al unicel.</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto bg-dark-green text-white rounded-2xl shadow-xl border border-white/10 p-6 sm:p-8">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+
+                    <div class="space-y-5">
+                        <div>
+                            <label for="calcSize" class="text-xs uppercase font-bold text-accent-mint tracking-wider block mb-2">Tamaño del costal</label>
+                            <select id="calcSize" class="w-full bg-white text-gray-800 text-sm font-medium px-3 py-3 rounded-lg outline-none cursor-pointer">
+                                <option value="25">Costal de 25 kg</option>
+                                <option value="45">Costal de 45 kg</option>
+                                <option value="50">Costal de 50 kg</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="calcQty" class="text-xs uppercase font-bold text-accent-mint tracking-wider block mb-2">Cantidad de costales</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="calcMinus" class="w-11 h-11 rounded-lg bg-white/10 hover:bg-white/20 text-lg font-bold transition-colors" aria-label="Menos">&minus;</button>
+                                <input type="number" id="calcQty" min="1" step="1" value="1" class="w-24 text-center bg-white text-gray-800 text-base font-bold py-2.5 rounded-lg outline-none">
+                                <button type="button" id="calcPlus" class="w-11 h-11 rounded-lg bg-white/10 hover:bg-white/20 text-lg font-bold transition-colors" aria-label="Más">+</button>
+                            </div>
+                        </div>
+
+                        <button type="button" id="calcAddBtn" class="w-full bg-primary-orange hover:bg-primary-orange-hover text-white font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i> Añadir este pedido al carrito
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="col-span-2 bg-primary-orange rounded-xl p-5">
+                            <div class="text-[10px] uppercase tracking-wider font-bold">Desecho no reciclable evitado</div>
+                            <div class="font-heading text-4xl font-extrabold mt-1" id="calcWaste">1.3 kg</div>
+                            <span class="text-[11px] block mt-1 opacity-90">Unicel y plástico que ya no llegan al basurero.</span>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <div class="text-[10px] uppercase tracking-wider font-bold text-accent-mint">CO₂e evitado</div>
+                            <div class="font-heading text-xl font-bold mt-1" id="calcCO2">3.9 kg</div>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <div class="text-[10px] uppercase tracking-wider font-bold text-accent-mint">Material compostable</div>
+                            <div class="font-heading text-xl font-bold mt-1" id="calcCompost">25.0 kg</div>
+                        </div>
+                    </div>
+
+                </div>
+                <p class="text-[10px] text-gray-400 mt-6">Estimación basada en 0.05 kg de unicel/plástico y 0.155 kg CO₂e evitados por cada kg de relleno XIUPACK. Ajusta los factores en main.js con tus datos reales.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TECHNICAL BLUEPRINT SECTION -->
+    <section class="py-16 bg-dark-green text-white" id="b2b-section">
+        <div class="container mx-auto px-4">
+            
+            <div class="grid lg:grid-cols-12 gap-8 items-center">
+                
+                <div class="lg:col-span-5 space-y-5">
+                    <span class="bg-accent-mint/20 text-accent-mint border border-accent-mint/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Ingeniería Sustentable</span>
+                    <h2 class="font-heading text-3xl sm:text-4xl font-extrabold text-white">Empaques hechos a la medida de tu producto</h2>
+                    <p class="text-gray-300 text-sm leading-relaxed">
+                        Desarrollamos moldes 3D personalizados para adaptarnos exactamente a la geometría de tus productos, maximizando la absorción de impactos y la presentación estética de tu marca.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-deep-green text-gray-300 py-8 text-xs">
+        <div class="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span>&copy; 2026 XIUPACK — Empaques Vivos de Micelio. Todos los derechos reservados.</span>
+            <a href="#" onclick="openPrivacy(); return false;" class="text-accent-mint hover:text-white underline font-medium">Aviso de Privacidad</a>
+        </div>
+    </footer>
+
+    <!-- AVISO DE PRIVACIDAD -->
+    <div id="privacyModal" class="fixed inset-0 bg-black/60 z-[80] opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between bg-dark-green text-white px-6 py-4 rounded-t-2xl">
+                <h3 class="font-heading text-xl font-bold"><i class="fa-solid fa-shield-halved text-primary-orange mr-2"></i>Aviso de Privacidad</h3>
+                <button id="closePrivacyBtn" class="w-8 h-8 rounded-full hover:bg-white/10" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto px-6 py-5 text-xs text-gray-700 leading-relaxed space-y-4">
+                <p class="text-gray-500">Última actualización: octubre de 2026.</p>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">1. Responsable del tratamiento de tus datos</h4>
+                    <p><strong>[NOMBRE O RAZÓN SOCIAL DEL RESPONSABLE]</strong>, con nombre comercial XIUPACK, con domicilio en <strong>[DOMICILIO COMPLETO]</strong>, es responsable del uso y protección de tus datos personales, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">2. Datos personales que recabamos</h4>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Nombre que escribes en el carrito.</li>
+                        <li>Dirección de entrega: calle y número, colonia, código postal, ciudad y estado, y referencias (opcional).</li>
+                        <li>Número de teléfono de tu cuenta de WhatsApp, que conocemos cuando nos escribes.</li>
+                        <li>Contenido de tu pedido: productos, cantidades y total.</li>
+                        <li>La información adicional que nos compartas voluntariamente en la conversación.</li>
+                    </ul>
+                    <p class="mt-2">No solicitamos datos personales sensibles. Este sitio no recibe ni procesa datos de tarjetas bancarias.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">3. Finalidades del tratamiento</h4>
+                    <p class="font-semibold">Necesarias para el servicio:</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Recibir y dar seguimiento a tu pedido o cotización.</li>
+                        <li>Confirmar disponibilidad, precio, envío y forma de pago.</li>
+                        <li>Coordinar el envío y la entrega de tu pedido en la dirección que indicaste.</li>
+                        <li>Contactarte para resolver dudas sobre tu pedido.</li>
+                    </ul>
+                    <p class="font-semibold mt-2">Adicionales (solo si lo aceptas):</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Enviarte información sobre nuevos productos o promociones de XIUPACK.</li>
+                    </ul>
+                    <p class="mt-2">Si no deseas que usemos tus datos para las finalidades adicionales, indícalo en tu conversación de WhatsApp o escríbenos al correo de contacto; esto no afectará la atención de tu pedido.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">4. Cómo se recaban y se usan tus datos en este sitio</h4>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>El carrito, tu nombre y tu dirección se mantienen únicamente en tu navegador y no se guardan en un servidor de XIUPACK. Se borran al cerrar o recargar la página.</li>
+                        <li>Tus datos solo salen de tu dispositivo cuando presionas "Enviar pedido por WhatsApp" y envías el mensaje. Ese mensaje se transmite mediante WhatsApp, servicio operado por Meta, que lo trata conforme a sus propios términos y política de privacidad.</li>
+                        <li>Este sitio carga fuentes, estilos y librerías de terceros (Google Fonts, Tailwind CSS, Font Awesome, Unsplash). Al cargarlos, esos proveedores pueden recibir datos técnicos como tu dirección IP y tipo de navegador.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">5. Transferencia de datos</h4>
+                    <p>No vendemos ni compartimos tus datos personales con terceros, salvo que una autoridad competente lo requiera conforme a la ley, o que sea necesario para entregar tu pedido (por ejemplo, la paquetería que lo transporta, a la que se le proporciona tu dirección de entrega).</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">6. Conservación</h4>
+                    <p>Conservaremos tus datos solo el tiempo necesario para atender tu pedido y cumplir obligaciones legales, fiscales o contables aplicables.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">7. Derechos ARCO y revocación del consentimiento</h4>
+                    <p>Tienes derecho a Acceder a tus datos, Rectificarlos si son inexactos, Cancelarlos u Oponerte a su uso, así como a revocar tu consentimiento. Para ejercerlos, envía tu solicitud a <strong>[CORREO ELECTRÓNICO DE CONTACTO]</strong> o por WhatsApp, indicando tu nombre, el derecho que deseas ejercer y una descripción clara de tu petición. Te responderemos en los plazos que marca la ley.</p>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-dark-green text-sm">8. Cambios al aviso de privacidad</h4>
+                    <p>Podemos modificar este aviso por cambios legales o en nuestros servicios. La versión vigente siempre estará disponible en este sitio, en el enlace "Aviso de Privacidad" del pie de página.</p>
+                </section>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 text-right">
+                <button id="btnPrivacyClose" class="bg-primary-orange hover:bg-primary-orange-hover text-white font-bold px-5 py-2.5 rounded-lg text-xs transition-colors">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARRITO -->
+    <div id="cartModal" class="fixed inset-0 bg-black/50 z-[60] opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="cartContainer" class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col translate-x-full transition-transform duration-300">
+            <div class="flex items-center justify-between bg-dark-green text-white px-5 py-4">
+                <h3 class="font-heading text-lg font-bold"><i class="fa-solid fa-cart-shopping mr-2"></i>Tu carrito</h3>
+                <button id="closeCartBtn" class="w-8 h-8 rounded-full hover:bg-white/10" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="cartItemsList" class="flex-1 overflow-y-auto p-5 space-y-3">
+                <p id="emptyCartMsg" class="text-center text-sm text-gray-500 mt-10">Tu carrito está vacío.</p>
+            </div>
+            <div class="border-t border-gray-200 p-5 space-y-3 bg-card-cream max-h-[65vh] overflow-y-auto">
+                <div class="flex items-center justify-between text-xs text-accent-green font-semibold">
+                    <span><i class="fa-solid fa-leaf mr-1"></i>Desecho evitado con tu pedido</span>
+                    <span id="cartWaste">0.0 kg</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-dark-green">Total</span>
+                    <span id="cartTotal" class="font-bold text-dark-green text-lg">$0.00 MXN</span>
+                </div>
+                <div class="space-y-2">
+                    <span class="text-[11px] font-bold text-dark-green block">Dirección de entrega</span>
+                    <input type="text" id="addrStreet" maxlength="100" autocomplete="address-line1" placeholder="Calle y número" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="addrColonia" maxlength="60" placeholder="Colonia" class="col-span-2 w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
+                        <input type="text" id="addrZip" maxlength="5" inputmode="numeric" autocomplete="postal-code" placeholder="C.P." class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
+                    </div>
+                    <input type="text" id="addrCity" maxlength="80" autocomplete="address-level2" placeholder="Ciudad y estado" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
+                    <input type="text" id="addrRefs" maxlength="120" placeholder="Referencias (opcional): entre calles, color de casa..." class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
+                </div>
+                <div>
+                    <label for="customerName" class="text-[11px] font-bold text-dark-green block mb-1">Tu nombre (para tu pedido)</label>
+                    <input type="text" id="customerName" maxlength="60" autocomplete="name" placeholder="Ej. María López" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-gray-600 leading-snug cursor-pointer">
+                    <input type="checkbox" id="privacyCheck" class="mt-0.5 accent-[#C77A38]">
+                    <span>He leído y acepto el <a href="#" onclick="openPrivacy(); return false;" class="text-primary-orange font-bold underline">Aviso de Privacidad</a>. Entiendo que mis datos se envían por WhatsApp para atender mi pedido.</span>
+                </label>
+                <button onclick="checkout()" class="w-full bg-[#25D366] hover:bg-[#1fb857] text-white font-bold py-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar pedido por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast-enter fixed bottom-6 right-6 z-[70] bg-dark-green text-white text-xs font-medium px-4 py-3 rounded-lg shadow-xl pointer-events-none max-w-xs">
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- WHATSAPP -->
+    <button onclick="openWhatsApp()" class="wa-btn-pulse fixed bottom-6 left-6 z-[55] w-14 h-14 rounded-full bg-[#25D366] text-white text-2xl flex items-center justify-center shadow-lg" aria-label="WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </button>
+
+    <script src="main.js"></script>
+</body>
+</html>
+<!-- update -->.
