@@ -41,6 +41,8 @@
     </script>
 
     <style>
+        html { scroll-behavior: smooth; }
+        section[id] { scroll-margin-top: 90px; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #FAF6F0;
@@ -155,14 +157,11 @@
                     </div>
                 </a>
 
-                <!-- Location Selector -->
-                <button class="hidden md:flex items-center gap-2 bg-white/10 hover:bg-white/15 px-3 py-2 rounded-lg text-xs text-left border border-white/10 transition-colors">
+                <!-- Ubicación (solo texto informativo) -->
+                <div class="hidden md:flex items-center gap-2 text-xs select-none cursor-default">
                     <i class="fa-solid fa-location-dot text-primary-orange text-sm"></i>
-                    <div>
-                        <span class="block text-[10px] text-accent-mint">Entregar en</span>
-                        <strong class="text-white font-semibold">México / LATAM</strong>
-                    </div>
-                </button>
+                    <span class="text-white font-semibold">Entregas solo en México</span>
+                </div>
 
                 <!-- Search Bar con el filtro desplegable único -->
                 <div class="w-full lg:w-1/3 flex bg-white rounded-lg overflow-hidden shadow-inner">
@@ -180,13 +179,13 @@
 
                 <!-- Header Actions -->
                 <div class="flex items-center gap-6 text-xs">
-                    <div class="hidden sm:flex items-center gap-2 cursor-pointer hover:text-accent-mint transition-colors">
+                    <button id="accountBtn" type="button" class="flex items-center gap-2 hover:text-accent-mint transition-colors text-left">
                         <i class="fa-regular fa-user text-lg"></i>
-                        <div>
-                            <span class="block text-[10px] text-gray-300">Hola, Inicia sesión</span>
+                        <div class="hidden sm:block">
+                            <span id="accountGreeting" class="block text-[10px] text-gray-300">Hola, Inicia sesión</span>
                             <span class="font-semibold block">Cuenta y Pedidos</span>
                         </div>
-                    </div>
+                    </button>
 
                     <!-- Cart Toggle -->
                     <button id="cartBtn" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors relative">
@@ -390,7 +389,7 @@
                             </div>
 
                             <div class="relative rounded-xl overflow-hidden shadow-lg border border-white/20 h-64">
-                                <img id="matImage" src="xiu.jpg" alt="Micelio Detalle" class="w-full h-full object-cover">
+                                <img id="matImage" src="xiupack2.jpeg" alt="Micelio Detalle" class="w-full h-full object-cover">
                                 <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-[11px] text-white">
                                     <strong class="block text-accent-mint">Microestructura XIUPACK</strong>
                                     <span>Material 100% compostable sin residuos tóxicos.</span>
@@ -625,7 +624,8 @@
                 <section>
                     <h4 class="font-bold text-dark-green text-sm">2. Datos personales que recabamos</h4>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li>Nombre que escribes en el carrito.</li>
+                        <li>Nombre que escribes en el carrito o al crear tu cuenta.</li>
+                        <li>Si creas una cuenta: correo electrónico, contraseña (almacenada por nuestro proveedor únicamente de forma cifrada), dirección de entrega guardada e historial de tus pedidos enviados.</li>
                         <li>Dirección de entrega: calle y número, colonia, código postal, ciudad y estado, y referencias (opcional).</li>
                         <li>Número de teléfono de tu cuenta de WhatsApp, que conocemos cuando nos escribes.</li>
                         <li>Contenido de tu pedido: productos, cantidades y total.</li>
@@ -639,6 +639,7 @@
                     <p class="font-semibold">Necesarias para el servicio:</p>
                     <ul class="list-disc pl-5 space-y-1">
                         <li>Recibir y dar seguimiento a tu pedido o cotización.</li>
+                        <li>Crear y mantener tu cuenta, y guardar tus datos de entrega para agilizar futuras compras.</li>
                         <li>Confirmar disponibilidad, precio, envío y forma de pago.</li>
                         <li>Coordinar el envío y la entrega de tu pedido en la dirección que indicaste.</li>
                         <li>Contactarte para resolver dudas sobre tu pedido.</li>
@@ -653,25 +654,26 @@
                 <section>
                     <h4 class="font-bold text-dark-green text-sm">4. Cómo se recaban y se usan tus datos en este sitio</h4>
                     <ul class="list-disc pl-5 space-y-1">
-                        <li>El carrito, tu nombre y tu dirección se mantienen únicamente en tu navegador y no se guardan en un servidor de XIUPACK. Se borran al cerrar o recargar la página.</li>
+                        <li>El carrito, tu nombre y tu dirección se mantienen únicamente en tu navegador y no se guardan en un servidor de XIUPACK. Si no tienes cuenta, se borran al cerrar o recargar la página.</li>
+                        <li>Si creas una cuenta, tus datos (nombre, correo, contraseña cifrada, dirección guardada y pedidos enviados) se guardan en los servidores de Supabase, proveedor de servicios de base de datos y autenticación, ubicados en Estados Unidos. Te recomendamos cerrar sesión en equipos compartidos.</li>
                         <li>Tus datos solo salen de tu dispositivo cuando presionas "Enviar pedido por WhatsApp" y envías el mensaje. Ese mensaje se transmite mediante WhatsApp, servicio operado por Meta, que lo trata conforme a sus propios términos y política de privacidad.</li>
-                        <li>Este sitio carga fuentes, estilos y librerías de terceros (Google Fonts, Tailwind CSS, Font Awesome, Unsplash). Al cargarlos, esos proveedores pueden recibir datos técnicos como tu dirección IP y tipo de navegador.</li>
+                        <li>Este sitio carga fuentes, estilos y librerías de terceros (Google Fonts, Tailwind CSS, Font Awesome, Unsplash, jsDelivr). Al cargarlos, esos proveedores pueden recibir datos técnicos como tu dirección IP y tipo de navegador.</li>
                     </ul>
                 </section>
 
                 <section>
                     <h4 class="font-bold text-dark-green text-sm">5. Transferencia de datos</h4>
-                    <p>No vendemos ni compartimos tus datos personales con terceros, salvo que una autoridad competente lo requiera conforme a la ley, o que sea necesario para entregar tu pedido (por ejemplo, la paquetería que lo transporta, a la que se le proporciona tu dirección de entrega).</p>
+                    <p>No vendemos ni compartimos tus datos personales con terceros, salvo que una autoridad competente lo requiera conforme a la ley, o que sea necesario para entregar tu pedido (por ejemplo, la paquetería que lo transporta, a la que se le proporciona tu dirección de entrega). Si creas una cuenta, tus datos se almacenan con Supabase, que los trata únicamente para prestarnos el servicio de base de datos y autenticación, en servidores ubicados en Estados Unidos.</p>
                 </section>
 
                 <section>
                     <h4 class="font-bold text-dark-green text-sm">6. Conservación</h4>
-                    <p>Conservaremos tus datos solo el tiempo necesario para atender tu pedido y cumplir obligaciones legales, fiscales o contables aplicables.</p>
+                    <p>Conservaremos tus datos solo el tiempo necesario para atender tu pedido y cumplir obligaciones legales, fiscales o contables aplicables. Los datos de tu cuenta se conservan mientras la cuenta permanezca activa o hasta que solicites su eliminación.</p>
                 </section>
 
                 <section>
                     <h4 class="font-bold text-dark-green text-sm">7. Derechos ARCO y revocación del consentimiento</h4>
-                    <p>Tienes derecho a Acceder a tus datos, Rectificarlos si son inexactos, Cancelarlos u Oponerte a su uso, así como a revocar tu consentimiento. Para ejercerlos, envía tu solicitud a <strong>[CORREO ELECTRÓNICO DE CONTACTO]</strong> o por WhatsApp, indicando tu nombre, el derecho que deseas ejercer y una descripción clara de tu petición. Te responderemos en los plazos que marca la ley.</p>
+                    <p>Tienes derecho a Acceder a tus datos, Rectificarlos si son inexactos, Cancelarlos u Oponerte a su uso, así como a revocar tu consentimiento. Para ejercerlos, envía tu solicitud a <strong>[CORREO ELECTRÓNICO DE CONTACTO]</strong> o por WhatsApp, indicando tu nombre, el derecho que deseas ejercer y una descripción clara de tu petición. También puedes solicitar la eliminación de tu cuenta desde "Mi cuenta", lo que genera una solicitud por WhatsApp. Te responderemos en los plazos que marca la ley.</p>
                 </section>
 
                 <section>
@@ -681,6 +683,95 @@
             </div>
             <div class="px-6 py-4 border-t border-gray-200 text-right">
                 <button id="btnPrivacyClose" class="bg-primary-orange hover:bg-primary-orange-hover text-white font-bold px-5 py-2.5 rounded-lg text-xs transition-colors">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREAR CUENTA / INICIAR SESIÓN -->
+    <div id="authModal" class="fixed inset-0 bg-black/60 z-[75] opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between bg-dark-green text-white px-6 py-4 rounded-t-2xl">
+                <h3 class="font-heading text-xl font-bold"><i class="fa-regular fa-user text-primary-orange mr-2"></i><span id="authTitle">Crea tu cuenta</span></h3>
+                <button id="closeAuthBtn" type="button" class="w-8 h-8 rounded-full hover:bg-white/10" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="px-6 pt-5">
+                <div class="grid grid-cols-2 bg-gray-100 rounded-lg p-1 text-xs font-bold">
+                    <button type="button" id="tabRegister" class="py-2 rounded-md transition-colors">Crear cuenta</button>
+                    <button type="button" id="tabLogin" class="py-2 rounded-md transition-colors">Iniciar sesión</button>
+                </div>
+            </div>
+
+            <form id="registerForm" class="px-6 py-5 space-y-3" novalidate>
+                <p class="text-xs text-gray-600">Guarda tu nombre, tu ubicación de entrega y tu historial de pedidos para comprar más rápido.</p>
+                <input type="text" id="regName" maxlength="60" autocomplete="name" placeholder="Nombre completo" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                <input type="email" id="regEmail" maxlength="100" autocomplete="email" placeholder="Correo electrónico" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                <input type="password" id="regPassword" maxlength="100" autocomplete="new-password" placeholder="Contraseña (mínimo 8 caracteres)" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                <div class="pt-1 space-y-2">
+                    <span class="text-[11px] font-bold text-dark-green block"><i class="fa-solid fa-location-dot text-primary-orange mr-1"></i>Tu ubicación de entrega</span>
+                    <input type="text" id="regStreet" maxlength="100" autocomplete="address-line1" placeholder="Calle y número" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="regColonia" maxlength="60" placeholder="Colonia" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange col-span-2">
+                        <input type="text" id="regZip" maxlength="5" inputmode="numeric" autocomplete="postal-code" placeholder="C.P." class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    </div>
+                    <input type="text" id="regCity" maxlength="80" autocomplete="address-level2" placeholder="Ciudad y estado" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    <input type="text" id="regRefs" maxlength="120" placeholder="Referencias (opcional): entre calles, color de casa..." class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                </div>
+                <label class="flex items-start gap-2 text-[11px] text-gray-600 leading-snug cursor-pointer">
+                    <input type="checkbox" id="regPrivacy" class="mt-0.5 accent-[#C77A38]">
+                    <span>He leído y acepto el <a href="#" onclick="openPrivacy(); return false;" class="text-primary-orange font-bold underline">Aviso de Privacidad</a>.</span>
+                </label>
+                <p id="regError" class="hidden text-[11px] text-red-600 font-semibold"></p>
+                <p id="regInfo" class="hidden text-[11px] text-accent-green font-semibold"></p>
+                <button type="submit" class="w-full bg-primary-orange hover:bg-primary-orange-hover text-white font-bold py-3 rounded-lg text-sm transition-colors">Crear mi cuenta</button>
+            </form>
+
+            <form id="loginForm" class="hidden px-6 py-5 space-y-3" novalidate>
+                <input type="email" id="loginEmail" maxlength="100" autocomplete="email" placeholder="Correo electrónico" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                <input type="password" id="loginPassword" maxlength="100" autocomplete="current-password" placeholder="Contraseña" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                <p id="loginError" class="hidden text-[11px] text-red-600 font-semibold"></p>
+                <button type="submit" class="w-full bg-primary-orange hover:bg-primary-orange-hover text-white font-bold py-3 rounded-lg text-sm transition-colors">Iniciar sesión</button>
+                <p class="text-[11px] text-gray-500 text-center">¿No tienes cuenta? <a href="#" onclick="openAuth('register'); return false;" class="text-primary-orange font-bold underline">Crea una</a></p>
+            </form>
+
+            <p class="px-6 pb-5 text-[10px] text-gray-400 leading-snug">Tu cuenta se guarda de forma segura y podrás entrar desde cualquier dispositivo. Tu contraseña se almacena cifrada.</p>
+        </div>
+    </div>
+
+    <!-- MI CUENTA -->
+    <div id="accountModal" class="fixed inset-0 bg-black/60 z-[75] opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+            <div class="flex items-center justify-between bg-dark-green text-white px-6 py-4 rounded-t-2xl">
+                <h3 class="font-heading text-xl font-bold"><i class="fa-regular fa-user text-primary-orange mr-2"></i>Mi cuenta</h3>
+                <button id="closeAccountBtn" type="button" class="w-8 h-8 rounded-full hover:bg-white/10" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overflow-y-auto px-6 py-5 space-y-5">
+                <div>
+                    <p id="acName" class="font-bold text-dark-green text-base"></p>
+                    <p id="acEmail" class="text-xs text-gray-500"></p>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="font-bold text-dark-green text-sm">Dirección de entrega guardada</h4>
+                    <input type="text" id="acStreet" maxlength="100" placeholder="Calle y número" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="acColonia" maxlength="60" placeholder="Colonia" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange col-span-2">
+                        <input type="text" id="acZip" maxlength="5" inputmode="numeric" placeholder="C.P." class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    </div>
+                    <input type="text" id="acCity" maxlength="80" placeholder="Ciudad y estado" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    <input type="text" id="acRefs" maxlength="120" placeholder="Referencias (opcional)" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-xs outline-none focus:border-primary-orange">
+                    <p id="acError" class="hidden text-[11px] text-red-600 font-semibold"></p>
+                    <button type="button" id="saveAddressBtn" class="bg-dark-green hover:bg-deep-green text-white font-bold px-4 py-2.5 rounded-lg text-xs transition-colors">Guardar dirección</button>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-dark-green text-sm mb-2">Mis pedidos</h4>
+                    <div id="accountOrders" class="space-y-2 text-xs"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
+                <button type="button" id="logoutBtn" class="bg-primary-orange hover:bg-primary-orange-hover text-white font-bold px-4 py-2.5 rounded-lg text-xs transition-colors">Cerrar sesión</button>
+                <button type="button" id="deleteAccountBtn" class="text-[11px] text-red-600 hover:underline font-semibold">Solicitar eliminar mi cuenta y datos</button>
             </div>
         </div>
     </div>
@@ -718,6 +809,12 @@
                     <label for="customerName" class="text-[11px] font-bold text-dark-green block mb-1">Tu nombre (para tu pedido)</label>
                     <input type="text" id="customerName" maxlength="60" autocomplete="name" placeholder="Ej. María López" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary-orange">
                 </div>
+                <div id="saveAddrWrap" class="hidden">
+                    <label class="flex items-center gap-2 text-[11px] text-gray-600 cursor-pointer">
+                        <input type="checkbox" id="saveAddrCheck" checked class="accent-[#C77A38]"> Guardar estos datos en mi cuenta
+                    </label>
+                </div>
+                <p id="cartLoginHint" class="text-[11px] text-gray-500">¿Quieres guardar tus datos para la próxima vez? <a href="#" onclick="openAuth('register'); return false;" class="text-primary-orange font-bold underline">Crea tu cuenta</a></p>
                 <label class="flex items-start gap-2 text-[11px] text-gray-600 leading-snug cursor-pointer">
                     <input type="checkbox" id="privacyCheck" class="mt-0.5 accent-[#C77A38]">
                     <span>He leído y acepto el <a href="#" onclick="openPrivacy(); return false;" class="text-primary-orange font-bold underline">Aviso de Privacidad</a>. Entiendo que mis datos se envían por WhatsApp para atender mi pedido.</span>
@@ -739,6 +836,7 @@
         <i class="fa-brands fa-whatsapp"></i>
     </button>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.100.1/dist/umd/supabase.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
