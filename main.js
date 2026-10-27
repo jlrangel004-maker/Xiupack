@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (show) {
             cartModal.classList.remove('opacity-0', 'pointer-events-none');
             cartContainer.classList.remove('translate-x-full');
+            prefillCheckout();
         } else {
             cartModal.classList.add('opacity-0', 'pointer-events-none');
             cartContainer.classList.add('translate-x-full');
@@ -263,14 +264,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.open(`https://wa.me/${whatsappNum}?text=${encodeURIComponent(msg)}`, '_blank');
 
+        onOrderSent({
+            address: { street, colonia, zip, city, refs },
+            items: cart.map(i => ({ title: i.title, qty: i.qty, price: i.price })),
+            total
+        });
+
         showToast("Abriendo WhatsApp con tu pedido...");
         cart = [];
         updateCartUI();
-        if (nameInput) nameInput.value = '';
-        ['addrStreet', 'addrColonia', 'addrZip', 'addrCity', 'addrRefs'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
+        resetCheckoutFields();
         privacyCheck.checked = false;
         toggleCart(false);
     };
@@ -417,5 +420,357 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = `https://wa.me/${whatsappNum}?text=${whatsappDefaultMsg}`;
         window.open(url, '_blank');
     };
+
+    // ==========================================
+    // 8. CUENTAS (Supabase)
+    // ==========================================
+    const SUPABASE_URL = 'https://pisxpkjzsnspmpcmixxc.supabase.co';
+    // Clave "publishable": es pública por diseño; la seguridad la dan las reglas RLS de la base de datos.
+    // NUNCA pongas aquí la "secret key" ni la "service_role".
+    const SUPABASE_KEY = 'sb_publishable_3q8cLLW_ZNzRm8wM71Sceg_ytAT5muw';
+
+    const sb = (window.supabase && window.supabase.createClient)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+        : null;
+
+    const SERVICE_DOWN = 'El servicio de cuentas no está disponible en este momento. Inténtalo más tarde.';
+    let currentUser = null; // { id, email, name, address }
+
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    function getCurrentUser() { return currentUser; }
+    const displayName = (u) => (u.name && u.name.trim()) || u.email.split('@')[0];
+
+    function setFieldError(id, msg) {
+        const el = $(id);
+        if (!el) return;
+        el.textContent = msg || '';
+        el.classList.toggle('hidden', !msg);
+    }
+    function setFieldInfo(id, msg) { setFieldError(id, msg); }
+
+    function authErrorMessage(error) {
+        const m = ((error && error.message) || '').toLowerCase();
+        if (m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.';
+        if (m.includes('email not confirmed')) return 'Confirma tu correo (revisa tu bandeja de entrada) antes de iniciar sesión.';
+        if (m.includes('already registered')) return 'Ya existe una cuenta con ese correo. Inicia sesión.';
+        if (m.includes('rate limit') || (error && error.status === 429)) return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+        if (m.includes('password')) return 'La contraseña no cumple los requisitos (mínimo 8 caracteres).';
+        if (m.includes('fetch') || m.includes('network')) return 'No hay conexión con el servicio de cuentas. Revisa tu internet.';
+        return 'No se pudo completar la operación. Inténtalo de nuevo.';
+    }
+
+    // ---------- Interfaz ----------
+    function updateAccountUI() {
+        const user = getCurrentUser();
+        const greeting = $('accountGreeting');
+        if (greeting) greeting.textContent = user ? `Hola, ${displayName(user).split(' ')[0]}` : 'Hola, Inicia sesión';
+
+        const saveWrap = $('saveAddrWrap');
+        const hint = $('cartLoginHint');
+        if (saveWrap) saveWrap.classList.toggle('hidden', !user);
+        if (hint) hint.classList.toggle('hidden', !!user);
+    }
+
+    function toggleModal(id, show) {
+        const m = $(id);
+        if (!m) return;
+        m.classList.toggle('opacity-0', !show);
+        m.classList.toggle('pointer-events-none', !show);
+    }
+
+    function setAuthTab(tab) {
+        const isRegister = tab !== 'login';
+        const reg = $('registerForm'), log = $('loginForm');
+        if (reg) reg.classList.toggle('hidden', !isRegister);
+        if (log) log.classList.toggle('hidden', isRegister);
+        if ($('authTitle')) $('authTitle').textContent = isRegister ? 'Crea tu cuenta' : 'Inicia sesión';
+        const on = ['bg-white', 'shadow', 'text-dark-green'];
+        const off = ['text-gray-500'];
+        [['tabRegister', isRegister], ['tabLogin', !isRegister]].forEach(([id, active]) => {
+            const b = $(id);
+            if (!b) return;
+            on.forEach(c => b.classList.toggle(c, active));
+            off.forEach(c => b.classList.toggle(c, !active));
+        });
+        setFieldError('regError', '');
+        setFieldInfo('regInfo', '');
+        setFieldError('loginError', '');
+    }
+
+    window.openAuth = function(tab = 'register') {
+        if (!sb) { showToast(SERVICE_DOWN); return; }
+        setAuthTab(tab);
+        toggleModal('authModal', true);
+    };
+
+    function renderOrders(orders) {
+        const box = $('accountOrders');
+        if (!box) return;
+        if (!orders || orders.length === 0) {
+            box.innerHTML = '<p class="text-gray-500">Aún no tienes pedidos enviados.</p>';
+            return;
+        }
+        box.innerHTML = orders.map(o => {
+            const date = new Date(o.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+            const items = (o.items || []).map(i => `${Number(i.qty)} x ${escapeHtml(i.title)}`).join('<br>');
+            const total = Number(o.total).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+            return `<div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div class="flex justify-between font-bold text-dark-green"><span>${date}</span><span>$${total} MXN</span></div>
+                <div class="text-gray-600 mt-1">${items}</div>
+            </div>`;
+        }).join('');
+    }
+
+    async function openAccount() {
+        const user = getCurrentUser();
+        if (!user) { window.openAuth('register'); return; }
+        $('acName').textContent = displayName(user);
+        $('acEmail').textContent = user.email;
+        const a = user.address || {};
+        $('acStreet').value = a.street || '';
+        $('acColonia').value = a.colonia || '';
+        $('acZip').value = a.zip || '';
+        $('acCity').value = a.city || '';
+        $('acRefs').value = a.refs || '';
+        setFieldError('acError', '');
+        $('accountOrders').innerHTML = '<p class="text-gray-500">Cargando pedidos...</p>';
+        toggleModal('accountModal', true);
+
+        try {
+            const { data, error } = await sb.from('orders').select('items, total, created_at').order('created_at', { ascending: false }).limit(20);
+            if (error) throw error;
+            renderOrders(data);
+        } catch (err) {
+            $('accountOrders').innerHTML = '<p class="text-red-600">No se pudieron cargar tus pedidos. Inténtalo más tarde.</p>';
+        }
+    }
+
+    // ---------- Datos del pedido (prellenado) ----------
+    function prefillCheckout() {
+        updateAccountUI();
+        const user = getCurrentUser();
+        if (!user) return;
+        const fill = (id, value) => { const el = $(id); if (el && !el.value && value) el.value = value; };
+        fill('customerName', user.name);
+        const a = user.address || {};
+        fill('addrStreet', a.street);
+        fill('addrColonia', a.colonia);
+        fill('addrZip', a.zip);
+        fill('addrCity', a.city);
+        fill('addrRefs', a.refs);
+    }
+
+    function resetCheckoutFields() {
+        ['customerName', 'addrStreet', 'addrColonia', 'addrZip', 'addrCity', 'addrRefs'].forEach(id => {
+            const el = $(id);
+            if (el) el.value = '';
+        });
+        prefillCheckout();
+    }
+
+    // ---------- Sesión y perfil ----------
+    async function refreshUser(session) {
+        if (!session || !session.user) {
+            currentUser = null;
+        } else {
+            const u = session.user;
+            currentUser = { id: u.id, email: u.email || '', name: (u.user_metadata && u.user_metadata.name) || '', address: null };
+            updateAccountUI();
+            try {
+                const { data } = await sb.from('profiles').select('name, street, colonia, zip, city, refs').eq('id', u.id).maybeSingle();
+                if (data && currentUser && currentUser.id === u.id) {
+                    if (data.name) currentUser.name = data.name;
+                    if (data.street) currentUser.address = { street: data.street, colonia: data.colonia || '', zip: data.zip || '', city: data.city || '', refs: data.refs || '' };
+                }
+            } catch (err) { /* se queda con los datos de la sesión */ }
+
+            // Si el perfil aún no tiene dirección, usa la que se capturó al crear la cuenta
+            const meta = u.user_metadata || {};
+            if (currentUser && currentUser.id === u.id && !currentUser.address && meta.street) {
+                currentUser.address = { street: meta.street, colonia: meta.colonia || '', zip: meta.zip || '', city: meta.city || '', refs: meta.refs || '' };
+            }
+        }
+        updateAccountUI();
+        prefillCheckout();
+    }
+
+    // Se llama al enviar un pedido por WhatsApp: lo guarda en la cuenta
+    async function onOrderSent(order) {
+        const user = getCurrentUser();
+        if (!sb || !user) return;
+        try {
+            const { error } = await sb.from('orders').insert({ user_id: user.id, items: order.items, total: order.total });
+            if (error) throw error;
+
+            const saveCheck = $('saveAddrCheck');
+            if (saveCheck && saveCheck.checked) {
+                const a = order.address;
+                const { error: e2 } = await sb.from('profiles')
+                    .update({ street: a.street, colonia: a.colonia, zip: a.zip, city: a.city, refs: a.refs || null })
+                    .eq('id', user.id);
+                if (e2) throw e2;
+                user.address = a;
+                prefillCheckout();
+            }
+        } catch (err) {
+            setTimeout(() => showToast('Tu pedido se envió, pero no pudimos guardarlo en tu cuenta.'), 3300);
+        }
+    }
+
+    // ---------- Crear cuenta ----------
+    async function handleRegister(e) {
+        e.preventDefault();
+        if (!sb) return setFieldError('regError', SERVICE_DOWN);
+        setFieldError('regError', '');
+        setFieldInfo('regInfo', '');
+
+        const name = $('regName').value.trim();
+        const email = $('regEmail').value.trim().toLowerCase();
+        const password = $('regPassword').value;
+        const street = $('regStreet').value.trim();
+        const colonia = $('regColonia').value.trim();
+        const zip = $('regZip').value.trim();
+        const city = $('regCity').value.trim();
+        const refs = $('regRefs').value.trim();
+
+        if (name.length < 2) return setFieldError('regError', 'Escribe tu nombre.');
+        if (!EMAIL_RE.test(email)) return setFieldError('regError', 'Escribe un correo válido.');
+        if (password.length < 8) return setFieldError('regError', 'La contraseña debe tener al menos 8 caracteres.');
+        if (!street) return setFieldError('regError', 'Escribe tu calle y número.');
+        if (!colonia) return setFieldError('regError', 'Escribe tu colonia.');
+        if (!/^\d{5}$/.test(zip)) return setFieldError('regError', 'Escribe un código postal de 5 dígitos.');
+        if (!city) return setFieldError('regError', 'Escribe tu ciudad y estado.');
+        if (!$('regPrivacy').checked) return setFieldError('regError', 'Debes aceptar el Aviso de Privacidad.');
+
+        const btn = $('registerForm').querySelector('button[type=submit]');
+        btn.disabled = true;
+        try {
+            const options = { data: { name, street, colonia, zip, city, refs } };
+            if (/^https?:$/.test(location.protocol)) options.emailRedirectTo = location.origin + location.pathname;
+
+            const { data, error } = await sb.auth.signUp({ email, password, options });
+            if (error) return setFieldError('regError', authErrorMessage(error));
+
+            // Correo ya registrado (Supabase no lo avisa como error por seguridad)
+            if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+                setAuthTab('login');
+                $('loginEmail').value = email;
+                return setFieldError('loginError', 'Ya existe una cuenta con ese correo. Inicia sesión.');
+            }
+
+            $('registerForm').reset();
+            if (!data.session) {
+                // Confirmación de correo activada
+                return setFieldInfo('regInfo', `Te enviamos un correo a ${email}. Ábrelo y confirma tu cuenta para iniciar sesión.`);
+            }
+            toggleModal('authModal', false);
+            showToast(`¡Cuenta creada! Bienvenido, ${name.split(' ')[0]}.`);
+        } catch (err) {
+            setFieldError('regError', authErrorMessage(err));
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // ---------- Iniciar sesión ----------
+    async function handleLogin(e) {
+        e.preventDefault();
+        if (!sb) return setFieldError('loginError', SERVICE_DOWN);
+        setFieldError('loginError', '');
+
+        const email = $('loginEmail').value.trim().toLowerCase();
+        const password = $('loginPassword').value;
+        if (!EMAIL_RE.test(email) || !password) return setFieldError('loginError', 'Escribe tu correo y tu contraseña.');
+
+        const btn = $('loginForm').querySelector('button[type=submit]');
+        btn.disabled = true;
+        try {
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) return setFieldError('loginError', authErrorMessage(error));
+            $('loginForm').reset();
+            toggleModal('authModal', false);
+            const nm = (data.user && data.user.user_metadata && data.user.user_metadata.name) || email.split('@')[0];
+            showToast(`¡Hola de nuevo, ${nm.split(' ')[0]}!`);
+        } catch (err) {
+            setFieldError('loginError', authErrorMessage(err));
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // ---------- Mi cuenta ----------
+    async function handleSaveAddress() {
+        const user = getCurrentUser();
+        if (!sb || !user) return;
+        const street = $('acStreet').value.trim();
+        const colonia = $('acColonia').value.trim();
+        const zip = $('acZip').value.trim();
+        const city = $('acCity').value.trim();
+        const refs = $('acRefs').value.trim();
+        if (!street || !colonia || !city) return setFieldError('acError', 'Completa calle, colonia y ciudad.');
+        if (!/^\d{5}$/.test(zip)) return setFieldError('acError', 'Escribe un código postal de 5 dígitos.');
+
+        try {
+            const { data, error } = await sb.from('profiles')
+                .update({ street, colonia, zip, city, refs: refs || null })
+                .eq('id', user.id)
+                .select();
+            if (error || !data || data.length === 0) throw error || new Error('sin filas');
+            user.address = { street, colonia, zip, city, refs };
+            setFieldError('acError', '');
+            showToast('Dirección guardada en tu cuenta.');
+        } catch (err) {
+            setFieldError('acError', 'No se pudo guardar tu dirección. Inténtalo de nuevo.');
+        }
+    }
+
+    async function logout() {
+        try { if (sb) await sb.auth.signOut(); } catch (err) {}
+        currentUser = null;
+        toggleModal('accountModal', false);
+        resetCheckoutFields();
+        updateAccountUI();
+        showToast('Sesión cerrada.');
+    }
+
+    // El navegador no puede borrar usuarios de Supabase: se genera la solicitud por WhatsApp
+    function requestAccountDeletion() {
+        const user = getCurrentUser();
+        if (!user) return;
+        if (!confirm('¿Solicitar la eliminación de tu cuenta y de tus datos? Se abrirá WhatsApp con tu solicitud para que la envíes.')) return;
+        const msg = `Hola, quiero ejercer mi derecho de cancelación: solicito eliminar mi cuenta y mis datos personales de XIUPACK. Correo de mi cuenta: ${user.email}`;
+        window.open(`https://wa.me/${whatsappNum}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // ---------- Eventos ----------
+    if ($('accountBtn')) $('accountBtn').addEventListener('click', () => getCurrentUser() ? openAccount() : window.openAuth('register'));
+    if ($('closeAuthBtn')) $('closeAuthBtn').addEventListener('click', () => toggleModal('authModal', false));
+    if ($('closeAccountBtn')) $('closeAccountBtn').addEventListener('click', () => toggleModal('accountModal', false));
+    if ($('tabRegister')) $('tabRegister').addEventListener('click', () => setAuthTab('register'));
+    if ($('tabLogin')) $('tabLogin').addEventListener('click', () => setAuthTab('login'));
+    if ($('registerForm')) $('registerForm').addEventListener('submit', handleRegister);
+    if ($('loginForm')) $('loginForm').addEventListener('submit', handleLogin);
+    if ($('saveAddressBtn')) $('saveAddressBtn').addEventListener('click', handleSaveAddress);
+    if ($('logoutBtn')) $('logoutBtn').addEventListener('click', logout);
+    if ($('deleteAccountBtn')) $('deleteAccountBtn').addEventListener('click', requestAccountDeletion);
+    ['authModal', 'accountModal'].forEach(id => {
+        const m = $(id);
+        if (m) m.addEventListener('click', (ev) => { if (ev.target === m) toggleModal(id, false); });
+    });
+    document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') { toggleModal('authModal', false); toggleModal('accountModal', false); }
+    });
+
+    // Estado de sesión: se dispara al cargar la página y en cada inicio/cierre de sesión
+    if (sb) {
+        sb.auth.onAuthStateChange((event, session) => {
+            // setTimeout evita bloqueos al llamar a Supabase dentro de este callback
+            setTimeout(() => refreshUser(session), 0);
+        });
+    }
+    updateAccountUI();
 
 });
